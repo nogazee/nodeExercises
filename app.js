@@ -14,7 +14,7 @@ yargs.command({
     describe: "Remove a joke",
     builder: {
         name: {
-            describe: '',
+            describe: 'Name of joke author',
             demandOption: true,
             type: 'string'
         }
@@ -37,9 +37,9 @@ yargs.command({
     describe: "read a joke",
     builder: {
         name: {
-        describe: "",
-        demandOption: true,
-        type: "string",
+            describe: "Name of joke author",
+            demandOption: true,
+            type: "string",
         }
     },
     handler(argv) {

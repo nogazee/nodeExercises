@@ -3,26 +3,29 @@ const joke = new Joke();
 const chance = require("chance").Chance();
 const fs = require("fs");
 
+const JOKES_FILE = "jokes.json";
+
 const addJoke = () => {
     const jokes = loadJokes();
     const randomName = chance.name({ nationality: "en" });
+    const randomJoke = joke.getJoke({}).joke;
     const duplicateName = jokes.find((joke) => joke.name === randomName);
-    if (!duplicateName) {
-        jokes.push({
-            name: randomName,
-            age: chance.age(),
-            joke: joke.getJoke({}).joke
-        });
-        saveJokes(jokes);
-        console.log("New joke added!");
-    } else {
-        console.log("Name taken");
+    while (duplicateName) {
+        randomName = chance.name({ nationality: "en" });
+        duplicateName = jokes.find((joke) => joke.name === randomName);
     }
+    jokes.push({
+        name: randomName,
+        age: chance.age(),
+        joke: randomJoke,
+    });
+    saveJokes(jokes);
+    console.log(`New joke added: ${randomJoke}`);
 }
 
 const removeJoke = (name) => {
     const jokes = loadJokes();
-    const jokesToKeep = jokes.filter((joke) => joke.name !== name);
+    const jokesToKeep = jokes.filter((joke) => joke.name.toLowerCase() !== name.toLowerCase());
     if (jokes.length > jokesToKeep.length) {
         console.log('Joke removed!');
         saveJokes(jokesToKeep);
@@ -35,13 +38,17 @@ const listJokes = () => {
     const jokes = loadJokes();
     console.log('List of Jokes:');
     jokes.forEach((joke) => {
-        console.log(joke.joke);
+        console.log(`
+            Name: ${joke.name},
+            Age: ${joke.age},
+            Joke: ${joke.joke}`
+        );
     });
 }
 
 const readJoke = (name) => {
     const jokes = loadJokes();
-    const joke = jokes.find((joke) => joke.name === name);
+    const joke = jokes.find((joke) => joke.name.toLowerCase() === name.toLowerCase());
     if (joke) {
         console.log(joke.joke);
     } else {
@@ -54,7 +61,7 @@ const getJokeByCategory = (categoryName) => {
         const categories = joke.getCategories();
         const realCategory = categories.find((category) => category.name === categoryName);
         if (realCategory) {
-            console.log(joke.getJoke({ category: `${categoryName}` }).joke);
+            console.log(joke.getJoke({ category: categoryName }).joke);
         } else {
             console.log("Invalid category");
         }
@@ -73,12 +80,12 @@ const listCategories = () => {
 
 const saveJokes = (jokes) => {
     const dataJSON = JSON.stringify(jokes);
-    fs.writeFileSync("jokes.json", dataJSON);
+    fs.writeFileSync(JOKES_FILE, dataJSON);
 }
 
 const loadJokes = () => {
     try {
-        const dataBuffer = fs.readFileSync("jokes.json");
+        const dataBuffer = fs.readFileSync(JOKES_FILE);
         const dataJSON = dataBuffer.toString();
         return JSON.parse(dataJSON);
     } catch (e) {
